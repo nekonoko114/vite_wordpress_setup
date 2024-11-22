@@ -1,0 +1,6 @@
+@use "../module/_variable" as *; // 共通変数やミックスインを利用
+
+#test {
+  color: $secondary-color;
+  text-align: center;
+}

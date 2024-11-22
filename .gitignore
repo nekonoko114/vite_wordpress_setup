@@ -1,0 +1,23 @@
+node_modules
+package-lock.json
+
+
+# Node.js関連
+node_modules/
+package-lock.json
+
+# Viteのビルド成果物
+dist/
+
+# IDE関連 (必要に応じて)
+.vscode/*
+!.vscode/extensions.json
+.idea
+# MacOSのシステムファイル
+.DS_Store
+
+# Editor directories and files
+
+
+
+
