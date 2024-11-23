@@ -1,32 +1,47 @@
 import { defineConfig } from 'vite';
 import path from 'path';
-import fs from 'fs'; // fsを静的に読み込む
+import fs from 'fs';
+import liveReload from 'vite-plugin-live-reload';
 import viteImagemin from 'vite-plugin-imagemin';
 
-export default defineConfig({
+// HTMLファイルを動的に収集
+const htmlFiles = fs.readdirSync(path.resolve(__dirname, 'src')).filter(file => file.endsWith('.html'));
+const input = htmlFiles.reduce((entries, file) => {
+  const name = path.parse(file).name;
+  entries[name] = path.resolve(__dirname, `src/${file}`);
+  return entries;
+}, {});
 
-  root: 'src', // プロジェクトルートを `src` に変更
-  base: './', // 相対パスで出力
-  build: {
-    outDir: '../dist', // ビルド成果物をプロジェクトルート外に出力
-    assetsDir: 'assets', // 静的アセットのディレクトリ
-    emptyOutDir: true, // プロジェクトルート外でもディレクトリをクリアする
-    cssCodeSplit: true, // CSSを分割
-    minify: false, // 圧縮を無効化   オプション圧縮の有効化:esbuild 無効化: false
-    // minify: 'esbuild', // デフォルトの圧縮方法
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'src/index.html'), // `src/index.html` をエントリポイントとして指定
+export default defineConfig({
+  root: 'src', // 開発用のルート
+  base: '/', // 必要に応じてMAMPのルートに対応
+  server: {
+    host: 'localhost',
+    port: 8080, // MAMPのデフォルトポートに合わせる
+    strictPort: true, // このポートが使用できない場合はエラーを出す
+    proxy: {
+      // PHPやMAMPで動作するリクエストをプロキシする
+      '/': {
+        target: 'http://localhost:8888', // MAMPのApacheデフォルトポート
+        changeOrigin: true,
       },
+    },
+  },
+  build: {
+    outDir: '../dist', // ビルド結果を出力
+    assetsDir: 'assets',
+    emptyOutDir: true,
+    rollupOptions: {
+      input,
       output: {
         assetFileNames: ({ name }) => {
           if (/\.(gif|jpe?g|png|svg|webp)$/i.test(name)) {
-            return 'assets/images/[name][extname]'; // 画像ファイルの出力先
+            return 'assets/images/[name][extname]';
           }
           if (/\.css$/i.test(name)) {
-            return 'assets/css/[name][extname]'; // CSSファイルの出力先
+            return 'assets/css/[name][extname]';
           }
-          return 'assets/[name][extname]'; // その他のアセットの出力先
+          return 'assets/[name][extname]';
         },
         chunkFileNames: 'assets/js/[name].js',
         entryFileNames: 'assets/js/[name].js',
@@ -38,56 +53,20 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  scss: {
-    additionalData: `@use "@/assets/scss/module/_variable" as *;`, // グローバル変数をすべてのSCSSで利用可能に
-  },
-  publicDir: false, // public フォルダを使わない
   plugins: [
-    {
-      name: 'copy-images',
-      apply: 'build',
-      generateBundle() {
-        const sourceDir = path.resolve(__dirname, 'src/assets/images');
-        const outputDir = path.resolve(__dirname, 'dist/assets/images');
-
-        const copyRecursiveSync = (src, dest) => {
-          if (!fs.existsSync(dest)) {
-            fs.mkdirSync(dest, { recursive: true });
-          }
-          fs.readdirSync(src).forEach((file) => {
-            const srcFile = path.join(src, file);
-            const destFile = path.join(dest, file);
-
-            if (fs.lstatSync(srcFile).isDirectory()) {
-              copyRecursiveSync(srcFile, destFile);
-            } else {
-              fs.copyFileSync(srcFile, destFile);
-            }
-          });
-        };
-
-        copyRecursiveSync(sourceDir, outputDir);
-      },
-    },
+    liveReload([
+      path.resolve(__dirname, 'htdocs/**/*.php'), // MAMPのPHPファイルを監視
+    ]),
     viteImagemin({
-        mozjpeg: {
-          quality: 80, // JPEGの圧縮品質（0〜100）
-        },
-        pngquant: {
-          quality: [0.7, 0.8], // PNGの圧縮品質（範囲で指定）
-        },
-        gifsicle: {
-          optimizationLevel: 2, // GIFの圧縮レベル（1〜3）
-        },
-        svgo: {
-          plugins: [
-            { name: 'removeViewBox', active: false }, // SVGの`viewBox`を残す
-            { name: 'cleanupIDs', active: true },     // 不要なIDを削除
-          ],
-        },
-        webp: {
-          quality: 80, // WebPの圧縮品質（0〜100）
-        },
-      }),
+      mozjpeg: { quality: 80 },
+      pngquant: { quality: [0.7, 0.8] },
+      gifsicle: { optimizationLevel: 2 },
+      svgo: {
+        plugins: [
+          { name: 'removeViewBox', active: false },
+          { name: 'cleanupIDs', active: true },
+        ],
+      },
+    }),
   ],
 });
