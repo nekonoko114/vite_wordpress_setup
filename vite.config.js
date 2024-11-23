@@ -15,18 +15,18 @@ const input = htmlFiles.reduce((entries, file) => {
 export default defineConfig({
   root: 'src', // 開発用のルート
   base: '/', // 必要に応じてMAMPのルートに対応
-  server: {
-    host: 'localhost',
-    port: 8080, // MAMPのデフォルトポートに合わせる
-    strictPort: true, // このポートが使用できない場合はエラーを出す
-    proxy: {
-      // PHPやMAMPで動作するリクエストをプロキシする
-      '/': {
-        target: 'http://localhost:8888', // MAMPのApacheデフォルトポート
-        changeOrigin: true,
-      },
-    },
-  },
+  // server: {
+  //   host: 'localhost',
+  //   port: 8080, // MAMPのデフォルトポートに合わせる
+  //   strictPort: true, // このポートが使用できない場合はエラーを出す
+  //   proxy: {
+  //     // PHPやMAMPで動作するリクエストをプロキシする
+  //     '/': {
+  //       target: 'http://localhost:8888', // MAMPのApacheデフォルトポート
+  //       changeOrigin: true,
+  //     },
+  //   },
+  // },
   build: {
     outDir: '../dist', // ビルド結果を出力
     assetsDir: 'assets',

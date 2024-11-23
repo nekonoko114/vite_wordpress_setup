@@ -1,4 +1,4 @@
-import "../scss/style.scss";
+// import "../scss/style.scss";
 
 const test = window.document.getElementById('test');
 

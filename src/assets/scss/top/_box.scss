@@ -1,0 +1,24 @@
+@use '../module/variable' as *;
+
+
+.container {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+
+}
+
+.box {
+    width: 100%;
+    height: 200px;
+    
+
+    &:nth-child(odd) {
+        background: $main-color;
+    }
+
+    &:nth-child(even) {
+        background: $secondary-color;
+    }
+}
